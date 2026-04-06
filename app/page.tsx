@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useEventStore } from '@/store/useEventStore';
 import { useFilters } from '@/hooks/useFilters';
 import { Event } from '@/types/event';
+import { exportEventsToJson } from '@/lib/eventUtils';
 import FilterBar from '@/components/FilterBar';
 import EventList from '@/components/EventList';
 import EventForm from '@/components/EventForm';
@@ -14,6 +15,7 @@ import Pagination from '@/components/Pagination';
 export default function EventsPage() {
   const {
     getPaginatedEvents,
+    getFilteredEvents,
     getTotalPages,
     currentPage,
     setPage,
@@ -71,15 +73,26 @@ export default function EventsPage() {
           <h1 className="text-2xl font-semibold text-gray-900">Events</h1>
           <p className="text-sm text-gray-500 mt-0.5">Manage and track all your events</p>
         </div>
-        <button
-          onClick={() => { setEditingEvent(null); setFormOpen(true); }}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Add Event
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportEventsToJson(getFilteredEvents())}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            Export JSON
+          </button>
+          <button
+            onClick={() => { setEditingEvent(null); setFormOpen(true); }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Add Event
+          </button>
+        </div>
       </div>
 
       <FilterBar />
