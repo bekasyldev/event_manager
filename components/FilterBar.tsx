@@ -1,34 +1,19 @@
 'use client';
 
-import { Category, Status } from '@/types/event';
+import { useFilters, sortOptions, SortOption } from '@/hooks/useFilters';
 
-type SortOption = 'date-asc' | 'date-desc' | 'title-asc' | 'title-desc';
+const sortLabels: Record<SortOption, string> = {
+  'date-asc': 'Date ↑',
+  'date-desc': 'Date ↓',
+  'title-asc': 'Title A–Z',
+  'title-desc': 'Title Z–A',
+};
 
-interface FilterBarProps {
-  onSearchChange?: (value: string) => void;
-  onCategoryChange?: (value: Category | '') => void;
-  onStatusChange?: (value: Status | '') => void;
-  onSortChange?: (sort: SortOption) => void;
-  activeSort?: SortOption;
-}
+export default function FilterBar() {
+  const [filters, setFilters] = useFilters();
 
-const sortOptions: { label: string; value: SortOption }[] = [
-  { label: 'Date ↑', value: 'date-asc' },
-  { label: 'Date ↓', value: 'date-desc' },
-  { label: 'Title A–Z', value: 'title-asc' },
-  { label: 'Title Z–A', value: 'title-desc' },
-];
-
-export default function FilterBar({
-  onSearchChange = () => {},
-  onCategoryChange = () => {},
-  onStatusChange = () => {},
-  onSortChange = () => {},
-  activeSort,
-}: FilterBarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-      {/* Search */}
       <div className="relative flex-1 min-w-[180px]">
         <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
           <svg
@@ -49,16 +34,16 @@ export default function FilterBar({
         <input
           type="text"
           placeholder="Search events…"
-          onChange={(e) => onSearchChange(e.target.value)}
+          value={filters.search}
+          onChange={(e) => setFilters({ search: e.target.value || null })}
           aria-label="Search events"
           className="w-full pl-9 pr-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
         />
       </div>
 
-      {/* Category select */}
       <select
-        onChange={(e) => onCategoryChange(e.target.value as Category | '')}
-        defaultValue=""
+        value={filters.category ?? ''}
+        onChange={(e) => setFilters({ category: (e.target.value as typeof filters.category) || null })}
         aria-label="Filter by category"
         className="px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 cursor-pointer"
       >
@@ -68,10 +53,9 @@ export default function FilterBar({
         <option value="Meeting">Meeting</option>
       </select>
 
-      {/* Status select */}
       <select
-        onChange={(e) => onStatusChange(e.target.value as Status | '')}
-        defaultValue=""
+        value={filters.status ?? ''}
+        onChange={(e) => setFilters({ status: (e.target.value as typeof filters.status) || null })}
         aria-label="Filter by status"
         className="px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 cursor-pointer"
       >
@@ -80,21 +64,20 @@ export default function FilterBar({
         <option value="Completed">Completed</option>
       </select>
 
-      {/* Sort buttons */}
       <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none sm:overflow-visible">
-        {sortOptions.map(({ label, value }) => (
+        {sortOptions.map((value) => (
           <button
             key={value}
-            onClick={() => onSortChange(value)}
-            aria-pressed={activeSort === value}
+            onClick={() => setFilters({ sort: value })}
+            aria-pressed={filters.sort === value}
             className={`shrink-0 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1
               ${
-                activeSort === value
+                filters.sort === value
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
           >
-            {label}
+            {sortLabels[value]}
           </button>
         ))}
       </div>
