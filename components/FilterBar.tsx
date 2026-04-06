@@ -1,6 +1,7 @@
 'use client';
 
 import { useFilters, sortOptions, SortOption } from '@/hooks/useFilters';
+import { CATEGORIES, STATUSES } from '@/lib/constants';
 
 const sortLabels: Record<SortOption, string> = {
   'date-asc': 'Date ↑',
@@ -48,9 +49,9 @@ export default function FilterBar() {
         className="px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 cursor-pointer"
       >
         <option value="">All Categories</option>
-        <option value="Conference">Conference</option>
-        <option value="Webinar">Webinar</option>
-        <option value="Meeting">Meeting</option>
+        {CATEGORIES.map((c) => (
+          <option key={c} value={c}>{c}</option>
+        ))}
       </select>
 
       <select
@@ -60,8 +61,9 @@ export default function FilterBar() {
         className="px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 cursor-pointer"
       >
         <option value="">All Statuses</option>
-        <option value="Planned">Planned</option>
-        <option value="Completed">Completed</option>
+        {STATUSES.map((s) => (
+          <option key={s} value={s}>{s}</option>
+        ))}
       </select>
 
       <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none sm:overflow-visible">
