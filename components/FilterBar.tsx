@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useFilters, sortOptions, SortOption } from '@/hooks/useFilters';
+import { useDebounce } from '@/hooks/useDebounce';
 import { CATEGORIES, STATUSES } from '@/lib/constants';
 
 const sortLabels: Record<SortOption, string> = {
@@ -19,14 +20,11 @@ export default function FilterBar() {
     defaultValues: { search: filters.search },
   });
 
-  const searchValue = watch('search');
+  const debouncedSearch = useDebounce(watch('search'));
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setFilters({ search: searchValue || null });
-    }, 300);
-    return () => clearTimeout(timeout);
-  }, [searchValue]);
+    setFilters({ search: debouncedSearch || null });
+  }, [debouncedSearch]);
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
