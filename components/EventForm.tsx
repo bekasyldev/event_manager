@@ -1,6 +1,10 @@
 'use client';
 
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Event } from '@/types/event';
+import { CATEGORIES, STATUSES } from '@/lib/constants';
+import { eventSchema, EventFormData } from '@/lib/schemas';
 
 interface EventFormProps {
   onSubmit?: (data: Partial<Event>) => void;
@@ -11,6 +15,9 @@ interface EventFormProps {
 const inputClass =
   'w-full px-3 py-2.5 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200';
 
+const inputErrorClass =
+  'w-full px-3 py-2.5 text-sm text-gray-700 bg-gray-50 border border-red-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent transition-all duration-200';
+
 const labelClass = 'block text-sm font-medium text-gray-700 mb-1.5';
 
 export default function EventForm({
@@ -20,17 +27,23 @@ export default function EventForm({
 }: EventFormProps) {
   const isEditing = !!defaultValues?.id;
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    onSubmit({
-      title: data.get('title') as string,
-      description: data.get('description') as string,
-      date: data.get('date') as string,
-      category: data.get('category') as Event['category'],
-      status: data.get('status') as Event['status'],
-    });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<EventFormData>({
+    resolver: zodResolver(eventSchema),
+    defaultValues: {
+      title: defaultValues?.title ?? '',
+      description: defaultValues?.description ?? '',
+      date: defaultValues?.date ?? '',
+      category: defaultValues?.category ?? 'Conference',
+      status: defaultValues?.status ?? 'Planned',
+    },
+  });
+
+  function onValid(data: EventFormData) {
+    onSubmit(data);
   }
 
   return (
@@ -40,16 +53,13 @@ export default function EventForm({
       aria-modal="true"
       aria-labelledby="form-title"
     >
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Panel */}
       <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <h2 id="form-title" className="text-lg font-semibold text-gray-900">
             {isEditing ? 'Edit Event' : 'Add Event'}
@@ -59,68 +69,60 @@ export default function EventForm({
             aria-label="Close form"
             className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-4">
-          {/* Title */}
+        <form onSubmit={handleSubmit(onValid)} className="px-6 py-5 flex flex-col gap-4">
           <div>
             <label htmlFor="title" className={labelClass}>
               Title <span className="text-red-400">*</span>
             </label>
             <input
               id="title"
-              name="title"
               type="text"
-              required
               placeholder="Event title"
-              defaultValue={defaultValues?.title ?? ''}
-              className={inputClass}
+              {...register('title')}
+              className={errors.title ? inputErrorClass : inputClass}
             />
+            {errors.title && (
+              <p className="mt-1 text-xs text-red-500">{errors.title.message}</p>
+            )}
           </div>
 
-          {/* Description */}
           <div>
             <label htmlFor="description" className={labelClass}>
               Description
             </label>
             <textarea
               id="description"
-              name="description"
               rows={3}
               placeholder="Optional description…"
-              defaultValue={defaultValues?.description ?? ''}
-              className={`${inputClass} resize-none`}
+              {...register('description')}
+              className={`${errors.description ? inputErrorClass : inputClass} resize-none`}
             />
+            {errors.description && (
+              <p className="mt-1 text-xs text-red-500">{errors.description.message}</p>
+            )}
           </div>
 
-          {/* Date */}
           <div>
             <label htmlFor="date" className={labelClass}>
               Date &amp; Time <span className="text-red-400">*</span>
             </label>
             <input
               id="date"
-              name="date"
               type="datetime-local"
-              required
-              defaultValue={defaultValues?.date ?? ''}
-              className={inputClass}
+              {...register('date')}
+              className={errors.date ? inputErrorClass : inputClass}
             />
+            {errors.date && (
+              <p className="mt-1 text-xs text-red-500">{errors.date.message}</p>
+            )}
           </div>
 
-          {/* Category + Status row */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="category" className={labelClass}>
@@ -128,13 +130,12 @@ export default function EventForm({
               </label>
               <select
                 id="category"
-                name="category"
-                defaultValue={defaultValues?.category ?? 'Conference'}
+                {...register('category')}
                 className={`${inputClass} cursor-pointer`}
               >
-                <option value="Conference">Conference</option>
-                <option value="Webinar">Webinar</option>
-                <option value="Meeting">Meeting</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -143,17 +144,16 @@ export default function EventForm({
               </label>
               <select
                 id="status"
-                name="status"
-                defaultValue={defaultValues?.status ?? 'Planned'}
+                {...register('status')}
                 className={`${inputClass} cursor-pointer`}
               >
-                <option value="Planned">Planned</option>
-                <option value="Completed">Completed</option>
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
               </select>
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
             <button
               type="button"
@@ -164,7 +164,8 @@ export default function EventForm({
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1"
+              disabled={isSubmitting}
+              className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isEditing ? 'Save Changes' : 'Add Event'}
             </button>

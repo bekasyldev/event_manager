@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { useFilters, sortOptions, SortOption } from '@/hooks/useFilters';
 import { CATEGORIES, STATUSES } from '@/lib/constants';
 
@@ -13,31 +15,32 @@ const sortLabels: Record<SortOption, string> = {
 export default function FilterBar() {
   const [filters, setFilters] = useFilters();
 
+  const { register, watch } = useForm<{ search: string }>({
+    defaultValues: { search: filters.search },
+  });
+
+  const searchValue = watch('search');
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setFilters({ search: searchValue || null });
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [searchValue]);
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
       <div className="relative flex-1 min-w-[180px]">
         <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-4 h-4 text-gray-400"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-            />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-400">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
           </svg>
         </span>
         <input
           type="text"
           placeholder="Search events…"
-          value={filters.search}
-          onChange={(e) => setFilters({ search: e.target.value || null })}
           aria-label="Search events"
+          {...register('search')}
           className="w-full pl-9 pr-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
         />
       </div>
@@ -73,11 +76,7 @@ export default function FilterBar() {
             onClick={() => setFilters({ sort: value })}
             aria-pressed={filters.sort === value}
             className={`shrink-0 px-3 py-2 text-xs font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1
-              ${
-                filters.sort === value
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              ${filters.sort === value ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             {sortLabels[value]}
           </button>
